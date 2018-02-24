@@ -331,6 +331,16 @@ void LogicController::SetCenterLocationOdom(Point centerLocationOdom)
   searchController.SetCenterLocation(centerLocationOdom);
   dropOffController.SetCenterLocation(centerLocationOdom);
 }
+// NEW -- Tobi
+void LogicController::SetSwarmSize(int size) {
+    searchController.SetSwarmSize(size);
+}
+
+void LogicController::SetRoverIndex(int idx) {
+    searchController.SetRoverIndex(idx);
+}
+
+// ****************
 
 void LogicController::AddManualWaypoint(Point manualWaypoint, int waypoint_id)
 {
@@ -346,6 +356,7 @@ std::vector<int> LogicController::GetClearedWaypoints()
 {
   return manualWaypointController.ReachedWaypoints();
 }
+
 
 void LogicController::setVirtualFenceOn( RangeShape* range )
 {

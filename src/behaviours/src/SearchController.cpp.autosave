@@ -38,6 +38,7 @@ Result SearchController::DoWork() {
         centerStart.y = centerLocation.y + (.75 * roverID);
 
         result.wpts.waypoints.clear();
+        cout << "XX Step 1 Going to CenterStart 1st attempt" << endl;
         result.wpts.waypoints.insert(result.wpts.waypoints.begin(), centerStart);
 
         return result;
@@ -93,6 +94,7 @@ Result SearchController::DoWork() {
 
     }
     case TARGET_NEWCORNER:{
+        cout <<"XX Step 2 : Calculate the side lengths" <<endl;
         searchlocationReached = false;
         result.wpts.waypoints.clear();
         searchLocation = SpiralSearching();
@@ -230,7 +232,7 @@ void SearchController::ReachedSearchLocation(){
 void SearchController::ReachedCenterStart(){
     if (hypot(centerStart.x-currentLocation.x,centerStart.y-currentLocation.y) < 0.10) {
         centerStartReached = true;
-        cout << "tag: reached the centerStart(): " << centerStart.x<< " , "<< centerStart.y<< endl;
+        cout << "XX Step 1.1: reached the centerStart(): " << centerStart.x<< " , "<< centerStart.y<< endl;
     }
 
 }

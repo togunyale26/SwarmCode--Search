@@ -46,6 +46,9 @@ public:
   void SetMapVelocityData(float linearVelocity, float angularVelocity);
   void SetCenterLocationOdom(Point centerLocationOdom);
   void SetCenterLocationMap(Point centerLocationMap);
+  void SetSwarmSize(int size);
+  void SetRoverIndex(int idx);
+  void SetRoverName(string name);
 
   
   // Passthrough for providing new waypoints to the

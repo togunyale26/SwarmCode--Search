@@ -115,6 +115,11 @@ Result result;
 
 std_msgs::String msg;
 
+/*  NEW  -- Tobi */
+vector<string> rover_names;
+bool first_auto = false;
+int self_index = (int)(-1);
+int swarm_size = 0;
 
 geometry_msgs::Twist velocity;
 char host[128];
@@ -129,6 +134,8 @@ ros::Publisher wristAnglePublish;
 ros::Publisher infoLogPublisher;
 ros::Publisher driveControlPublish;
 ros::Publisher heartbeatPublisher;
+ros::Publisher namePublish;  // NEW -- Tobi
+
 // Publishes swarmie_msgs::Waypoint messages on "/<robot>/waypooints"
 // to indicate when waypoints have been reached.
 ros::Publisher waypointFeedbackPublisher;
@@ -140,6 +147,7 @@ ros::Subscriber targetSubscriber;
 ros::Subscriber odometrySubscriber;
 ros::Subscriber mapSubscriber;
 ros::Subscriber virtualFenceSubscriber;
+ros::Subscriber nameSubscriber; // New -- Tobi
 // manualWaypointSubscriber listens on "/<robot>/waypoints/cmd" for
 // swarmie_msgs::Waypoint messages.
 ros::Subscriber manualWaypointSubscriber;
@@ -175,7 +183,7 @@ void behaviourStateMachine(const ros::TimerEvent&);
 void publishStatusTimerEventHandler(const ros::TimerEvent& event);
 void publishHeartBeatTimerEventHandler(const ros::TimerEvent& event);
 void sonarHandler(const sensor_msgs::Range::ConstPtr& sonarLeft, const sensor_msgs::Range::ConstPtr& sonarCenter, const sensor_msgs::Range::ConstPtr& sonarRight);
-
+void nameHandler(const std_msgs::String::ConstPtr& message); // NEW -- Tobi
 // Converts the time passed as reported by ROS (which takes Gazebo simulation rate into account) into milliseconds as an integer.
 long int getROSTimeInMilliSecs();
 
@@ -207,6 +215,8 @@ int main(int argc, char **argv) {
   mapSubscriber = mNH.subscribe((publishedName + "/odom/ekf"), 10, mapHandler);
   virtualFenceSubscriber = mNH.subscribe(("/virtualFence"), 10, virtualFenceHandler);
   manualWaypointSubscriber = mNH.subscribe((publishedName + "/waypoints/cmd"), 10, manualWaypointHandler);
+  nameSubscriber = mNH.subscribe("/names", 36, nameHandler); // NEW -- Tobi
+
   message_filters::Subscriber<sensor_msgs::Range> sonarLeftSubscriber(mNH, (publishedName + "/sonarLeft"), 10);
   message_filters::Subscriber<sensor_msgs::Range> sonarCenterSubscriber(mNH, (publishedName + "/sonarCenter"), 10);
   message_filters::Subscriber<sensor_msgs::Range> sonarRightSubscriber(mNH, (publishedName + "/sonarRight"), 10);
@@ -219,6 +229,8 @@ int main(int argc, char **argv) {
   driveControlPublish = mNH.advertise<geometry_msgs::Twist>((publishedName + "/driveControl"), 10);
   heartbeatPublisher = mNH.advertise<std_msgs::String>((publishedName + "/behaviour/heartbeat"), 1, true);
   waypointFeedbackPublisher = mNH.advertise<swarmie_msgs::Waypoint>((publishedName + "/waypoints"), 1, true);
+  namePublish = mNH.advertise<std_msgs::String>("/names", 6, true); // NEW -- Tobi
+
 
   publish_status_timer = mNH.createTimer(ros::Duration(status_publish_interval), publishStatusTimerEventHandler);
   stateMachineTimer = mNH.createTimer(ros::Duration(behaviourLoopTimeStep), behaviourStateMachine);
@@ -278,8 +290,8 @@ void behaviourStateMachine(const ros::TimerEvent&)
       initilized = true;
       //TODO: this just sets center to 0 over and over and needs to change
       Point centerOdom;
-      centerOdom.x = 1.3 * cos(currentLocation.theta);
-      centerOdom.y = 1.3 * sin(currentLocation.theta);
+      centerOdom.x = 1.308 * cos(currentLocation.theta);
+      centerOdom.y = 1.308 * sin(currentLocation.theta);
       centerOdom.theta = centerLocation.theta;
       logicController.SetCenterLocationOdom(centerOdom);
       
@@ -296,6 +308,11 @@ void behaviourStateMachine(const ros::TimerEvent&)
       centerLocationOdom.y = centerOdom.y;
       
       startTime = getROSTimeInMilliSecs();
+
+      // NEW -- Tobi
+      std_msgs::String name_msg;
+      name_msg.data = publishedName;
+      namePublish.publish(name_msg);
     }
 
     else
@@ -308,7 +325,22 @@ void behaviourStateMachine(const ros::TimerEvent&)
   // Robot is in automode
   if (currentMode == 2 || currentMode == 3)
   {
-    
+    // NEW -- Tobi
+      if(!first_auto) {
+             cout <<"tag:" << publishedName << " - known rovers list:\n";
+             for(int i = 0; i < rover_names.size(); i++) {
+                 cout << "\t" <<"tag:"<< rover_names[i] << "\n";
+             }
+
+             cout << "\n";
+
+             first_auto = true;
+             logicController.SetRoverIndex(self_index);
+             logicController.SetSwarmSize(rover_names.size());
+         }
+
+
+
     humanTime();
     
     //update the time used by all the controllers
@@ -637,6 +669,53 @@ void publishHeartBeatTimerEventHandler(const ros::TimerEvent&) {
   msg.data = "";
   heartbeatPublisher.publish(msg);
 }
+
+// NEW -- Tobi *************************
+void nameHandler(const std_msgs::String::ConstPtr& message)
+{
+    if(rover_names.empty()) {
+      cout<< "tag: roverlist is empty" << endl;
+        rover_names.push_back(message->data);
+        self_index = 0;
+    } else {
+        cout<< "tag: roverlist is Not empty" << endl;
+        int pos = rover_names.size();
+        int i;
+        for(i = 0; i < rover_names.size(); i++) {
+
+            if(message->data < rover_names[i]) {
+                pos = i;
+                break;
+            }
+
+            if(message->data == rover_names[i]) {
+                return;
+            }
+        }
+
+        first_auto = false;
+
+        rover_names.push_back("");
+
+        for(i = rover_names.size()-1; i > pos; i--) {
+            rover_names[i] = rover_names[i-1];
+        }
+
+        rover_names[pos] = message->data;
+
+        for(i = 0; i < rover_names.size(); i++) {
+            if(rover_names[i] == publishedName) {
+                self_index = i;
+                break;
+            }
+        }
+    }
+
+    std_msgs::String name_msg;
+    name_msg.data = publishedName;
+    namePublish.publish(name_msg);
+}
+ // *********************
 
 long int getROSTimeInMilliSecs()
 {
