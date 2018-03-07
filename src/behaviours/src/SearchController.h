@@ -48,7 +48,9 @@ public:
   void ReachedCenterStart();
   void SetSwarmSize(int size);
   void SetRoverIndex(int idx);
+  Point CornerSelect(int x);
   float CalculateSides(int circuitNum, int slot);
+  void Print( Point x);
 
 
 protected:
@@ -64,6 +66,7 @@ private:
   Point checkPoint;
   Point spiralLocation;
   Point centerStart;
+  Point FirstPoint;
   int attemptCount = 0;
   float sideLength = 1.5;
   //struct for returning data to ROS adapter
@@ -74,11 +77,15 @@ private:
   bool succesfullPickup = false;
   int cornerNum = 0;
   float corner = 2 * M_PI;
+  float northEast;
+  float southWest;
   bool checkpointReached = true;
   bool searchlocationReached = false;
   bool centerStartReached = false;
-  bool init = false;
-  bool centerSet =false;
+  bool init_A = false;
+  bool init_B = false;
+  bool centerSet = false;
+  bool startSpiral = false;
   int roverID = 0;
   int swarmSize = 0;
   int stepsIntoSpiral = 0;

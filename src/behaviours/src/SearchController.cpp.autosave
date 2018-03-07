@@ -51,7 +51,6 @@ Result SearchController::DoWork()
     else
     {
 
-
         ReachedCenterStart();
         ReachedCheckPoint();
         ReachedSearchLocation();
@@ -186,7 +185,7 @@ float SearchController::CalculateSides(int circuitNum, int slot){
         }
         else if(circuitNum == 1)
         {
-            sideLength = CalculateSides(0,slot) + swarmSize + roverID + 1.308;
+            sideLength = CalculateSides(0,slot) + swarmSize + roverID;
             return sideLength;
         }
         else if(circuitNum > 1)
