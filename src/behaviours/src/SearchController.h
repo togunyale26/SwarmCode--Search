@@ -26,70 +26,69 @@ class SearchController : virtual Controller {
 
 public:
 
-  SearchController();
+    SearchController();
 
-  void Reset() override;
+    void Reset() override;
 
-  // performs search pattern
-  Result DoWork() override;
-  bool ShouldInterrupt() override;
-  bool HasWork() override;
+    // performs search pattern
+    Result DoWork() override;
+    bool ShouldInterrupt() override;
+    bool HasWork() override;
 
-  // sets the value of the current location
-  //void UpdateData(geometry_msgs::Pose2D currentLocation, geometry_msgs::Pose2D centerLocation);
-  void SetCurrentLocation(Point currentLocation);
-  void SetCenterLocation(Point centerLocation);
-  void SetSuccesfullPickup();
-  //void SpiralSearching();
-  Point SpiralSearching();
-  void SetCheckPoint();
-  void ReachedCheckPoint();
-  void ReachedSearchLocation();
-  void ReachedCenterStart();
-  void SetSwarmSize(int size);
-  void SetRoverIndex(int idx);
-  Point CornerSelect(int x);
-  float CalculateSides(int circuitNum, int slot);
-  void Print( Point x);
+    // sets the value of the current location
+    //void UpdateData(geometry_msgs::Pose2D currentLocation, geometry_msgs::Pose2D centerLocation);
+    void SetCurrentLocation(Point currentLocation);
+    void SetCenterLocation(Point centerLocation);
+    void SetSuccesfullPickup();
 
 
-protected:
+    void SetCheckPoint();
+    void ReachedCheckPoint();
+    void ReachedSearchLocation();
+    void SetSwarmSize(int size);
+    void SetRoverIndex(int idx);
+    void Print( Point x);
+    Point Calculate(int grid ,int quad ,int x_y);
+    bool CheckSearchPoint(Point check);
+    float Cross(Point A, Point B, Point P);
+    float AngleGenerator();
+    float LengthGenerator();
 
-  void ProcessData();
+
+
+    protected:
+
+        void ProcessData();
 
 private:
 
-  random_numbers::RandomNumberGenerator* rng;
-  Point currentLocation;
-  Point centerLocation;
-  Point searchLocation;
-  Point checkPoint;
-  Point spiralLocation;
-  Point centerStart;
-  Point FirstPoint;
-  int attemptCount = 0;
-  float sideLength = 1.5;
-  //struct for returning data to ROS adapter
-  Result result;
 
-  // Search state
-  // Flag to allow special behaviour for the first waypoint
-  bool succesfullPickup = false;
-  int cornerNum = 0;
-  float corner = 2 * M_PI;
-  float northEast;
-  float southWest;
-  bool checkpointReached = true;
-  bool searchlocationReached = false;
-  bool centerStartReached = false;
-  bool init_A = false;
-  bool init_B = false;
-  bool centerSet = false;
-  bool startSpiral = false;
-  int roverID = 0;
-  int swarmSize = 0;
-  int stepsIntoSpiral = 0;
-  const float spacing = 0.25;
+    bool check = false;
+    int quad;
+    Point oneLine;
+    Point twoLine;
+    bool init_A = false;
+    bool init_B = false;
+    random_numbers::RandomNumberGenerator* rng;
+    Point currentLocation;
+    Point centerLocation;
+    Point searchLocation;
+    Point PrevCanidate;
+    Point checkPoint;
+    int attemptCount = 0;
+    //struct for returning data to ROS adapter
+    Result result;
+
+    // Search state
+    // Flag to allow special behaviour for the first waypoint
+    bool succesfullPickup = false;
+    bool checkpointReached = true;
+    bool searchlocationReached = false;
+
+    bool centerSet = false;
+    int roverID = 0;
+    int swarmSize = 0;
+    bool inQuad = false;
 
 
 };
